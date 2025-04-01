@@ -116,6 +116,11 @@ let rooms = {}; // Храним состояние комнат
 
 app.use(express.static(path.join(__dirname, "public")));
 
+// Раздача socket.io клиента
+app.get("/socket.io/socket.io.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "node_modules", "socket.io", "client-dist", "socket.io.js"));
+});
+  
 // Главная страница (index.html)
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
