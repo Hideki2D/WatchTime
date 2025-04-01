@@ -114,13 +114,13 @@ async function parseResults(html) {
 
 let rooms = {}; // Храним состояние комнат
 
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
 // Главная страница (index.html)
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
-
+module.exports = app;
 // Проверяем существование комнаты перед загрузкой страницы комнаты
 app.get("/room/:roomId", (req, res) => {
     const roomId = req.params.roomId;
