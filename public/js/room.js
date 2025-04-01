@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io({ transports: ['websocket'] });
 const video = document.getElementById('videoPlayer');
 const roomContainer = document.getElementById('room-container');
 const errorMessage = document.getElementById('error-message');
