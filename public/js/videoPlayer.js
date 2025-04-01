@@ -3,9 +3,9 @@ async function getM3U8(url) {
     try {
         let proxiedUrl;
         if(url.startsWith("https://") || url.startsWith("http://"))
-            proxiedUrl = proxuUrl + url;
+            proxiedUrl = proxiUrl + url;
         else
-            proxiedUrl = proxuUrl + "https://" +  url;
+            proxiedUrl = proxiUrl + "https://" +  url;
         let response = await fetch(proxiedUrl);
         let text = await response.text();
         console.log(text);
@@ -43,16 +43,16 @@ async function getM3U8(url) {
     const parser = new DOMParser();
     let proxiedUrl;
     if(url.startsWith("https://") || url.startsWith("http://"))
-        proxiedUrl = proxuUrl + url;
+        proxiedUrl = proxiUrl + url;
     else
-        proxiedUrl = proxuUrl + "https://" +  url;
+        proxiedUrl = proxiUrl + "https://" +  url;
     //console.log(proxiedUrl);
     let response = await fetch(proxiedUrl);
     console.log(response.status);
     if(response.status != 200)
     {
             console.log("Not 200");
-            fetch(proxuUrl + FullUrl).then(res => res.text()).then(async data => {
+            fetch(proxiUrl + FullUrl).then(res => res.text()).then(async data => {
             let anotherHtml = parser.parseFromString(data, 'text/html');
             console.log(anotherHtml);
             let anotherLink = anotherHtml.querySelector(".box.full-text.visible iframe");

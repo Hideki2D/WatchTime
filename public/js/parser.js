@@ -1,4 +1,4 @@
-const proxuUrl = 'https://watch-time-three.vercel.app/proxy?url=';
+const proxiUrl = 'https://watch-time-three.vercel.app/proxy?url=';
 const reqUrl = 'https://uakino.me/engine/ajax/playlists.php?news_id=$id&xfield=playlist&time=1736247302';
 // const url = proxuUrl + encodeURIComponent("https://uakino.me/engine/ajax/playlists.php?news_id=18489&xfield=playlist&time=1736247302");
 // fetch(url)
@@ -10,7 +10,7 @@ function Search(str)
 {
   url = str;
   //url = document.querySelector('.SearchUrl').value;
-  fetch(proxuUrl + url)
+  fetch(proxiUrl + url)
   .then(res => res.text())
   .then(data => ProcessigSearchResults(data))
   .catch(err => console.error("Ошибка запроса:", err));
@@ -34,7 +34,7 @@ function GetVideosByUrl(url)
   // .catch(err => console.error("Ошибка запроса:", err));
   var id = url.split('/').pop().split('-')[0];;;
   console.log(id);
-  var fullUrl = proxuUrl + encodeURIComponent(reqUrl.replace("$id", id));
+  var fullUrl = proxiUrl + encodeURIComponent(reqUrl.replace("$id", id));
   console.log(fullUrl);
   fetch(fullUrl)
   .then(res => res.text())
