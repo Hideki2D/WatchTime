@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Комната просмотра</title>
+    <link rel="stylesheet" href="/css/room.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="room-layout">
+        <!-- Error overlay -->
+        <div id="error-message" class="error-overlay">
+            <div class="error-content">
+                <h1>Ошибка: такой комнаты не существует!</h1>
+                <a href="/" class="home-link">Вернуться на главную</a>
+            </div>
+        </div>
+
+        <!-- Main room content -->
+        <div id="room-container" class="room-content">
+            <!-- Header with room info -->
+            <header class="room-header">
+                <div class="room-info">
+                    <h2>Комната: <span id="room-name"></span></h2>
+                    <button id="copy-button" class="copy-btn" title="Скопировать код комнаты">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main content area -->
+            <main class="room-main">
+                <!-- Search section -->
+                <section class="search-section">
+                    <div class="search-container">
+                        <input class="search-input" type="url" placeholder="Вставьте ссылку на видео">
+                        <button class="search-btn">Поиск</button>
+                    </div>
+                    
+                    <div class="search-results">
+                        <!-- Results will be inserted here -->
+                    </div>
+                </section>
+
+                <!-- Video player section -->
+                <section class="player-section">
+                    <div class="video-container">
+                        <video id="videoPlayer" controls></video>
+                    </div>
+                </section>
+
+                <!-- Voices and episodes section -->
+                <section class="content-section">
+                    <div class="voices-container">
+                        <h3>Доступные озвучки</h3>
+                        <div class="voices-buttons"></div>
+                    </div>
+                    
+                    <div class="episodes-container">
+                        <h3>Список серий</h3>
+                        <div class="episodes-buttons"></div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/utils.js"></script>
+    <script src="/js/parser.js"></script>
+    <script src="/js/videoPlayer.js"></script>
+    <script src="/js/room.js"></script>
+</body>
+</html>

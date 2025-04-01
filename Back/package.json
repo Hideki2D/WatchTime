@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@oneidentity/zstd-js": "^1.0.3",
+    "axios": "^1.8.4",
+    "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "http-encoding": "^2.0.1",
+    "simple-zstd": "^1.4.2",
+    "socket.io": "^4.8.1",
+    "zstd-codec": "^0.1.5"
+  }
+}
