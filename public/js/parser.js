@@ -1,4 +1,4 @@
-const proxuUrl = 'http://159.224.107.242:3001/proxy?url=';
+const proxuUrl = 'https://watch-time-three.vercel.app/proxy?url=';
 const reqUrl = 'https://uakino.me/engine/ajax/playlists.php?news_id=$id&xfield=playlist&time=1736247302';
 // const url = proxuUrl + encodeURIComponent("https://uakino.me/engine/ajax/playlists.php?news_id=18489&xfield=playlist&time=1736247302");
 // fetch(url)
