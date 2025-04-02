@@ -52,7 +52,7 @@ async function getM3U8(url) {
     if(response.status != 200)
     {
             console.log("Not 200");
-            fetch(FullUrl).then(res => res.text()).then(async data => {
+            fetch(proxiUrl + FullUrl).then(res => res.text()).then(async data => {
             let anotherHtml = parser.parseFromString(data, 'text/html');
             console.log(anotherHtml);
             let anotherLink = anotherHtml.querySelector(".box.full-text.visible iframe");
