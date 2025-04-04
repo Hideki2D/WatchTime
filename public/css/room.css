@@ -311,3 +311,182 @@ body {
     display: none;
     opacity: 0;
 }
+/* Стили для полноэкранного режима */
+.player-wrapper:-webkit-full-screen {
+    width: 100%;
+    height: 100%;
+}
+
+.player-wrapper:-moz-full-screen {
+    width: 100%;
+    height: 100%;
+}
+
+.player-wrapper:-ms-fullscreen {
+    width: 100%;
+    height: 100%;
+}
+
+.player-wrapper:fullscreen {
+    width: 100%;
+    height: 100%;
+}
+
+.player-wrapper:-webkit-full-screen video {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+}
+
+.player-wrapper:-moz-full-screen video {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+}
+
+.player-wrapper:-ms-fullscreen video {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+}
+
+.player-wrapper:fullscreen video {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+}
+
+/* Добавьте или обновите медиа-запросы для мобильных устройств */
+@media (max-width: 768px) {
+    /* Улучшаем видимость элементов управления */
+    .custom-controls {
+        padding: 15px 10px 10px;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    }
+    
+    /* Увеличиваем размер кнопок для удобства нажатия */
+    .control-button {
+        width: 40px;
+        height: 40px;
+        margin-right: 8px;
+    }
+    
+    /* Увеличиваем иконки внутри кнопок */
+    .control-button svg {
+        width: 22px;
+        height: 22px;
+    }
+    
+    /* Увеличиваем высоту полосы прогресса для удобства нажатия */
+    .progress-bar-container {
+        height: 12px;
+        margin-bottom: 12px;
+    }
+    
+    /* Увеличиваем шрифт времени */
+    .time-display {
+        font-size: 14px;
+        margin-left: 10px;
+    }
+    
+    /* Правильное масштабирование видео */
+    #videoPlayer {
+        width: 100%;
+        height: auto;
+        max-height: 100vh;
+        object-fit: contain;
+    }
+    
+    /* Контейнер плеера на всю ширину */
+    .player-wrapper {
+        width: 100%;
+        margin: 0;
+    }
+}
+
+/* Специфичные стили для очень маленьких экранов */
+@media (max-width: 480px) {
+    .controls-row {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    
+    .time-display {
+        order: 2;
+        width: 100%;
+        text-align: center;
+        margin-top: 8px;
+    }
+    
+    /* Выделяем основные элементы управления */
+    #playPauseButton, #fullscreenButton {
+        width: 44px;
+        height: 44px;
+    }
+    
+    #playPauseButton svg, #fullscreenButton svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* Важные стили для полноэкранного режима на мобильных устройствах */
+.player-wrapper:fullscreen, 
+.player-wrapper:-webkit-full-screen, 
+.player-wrapper:-moz-full-screen, 
+.player-wrapper:-ms-fullscreen {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.player-wrapper:fullscreen video, 
+.player-wrapper:-webkit-full-screen video, 
+.player-wrapper:-moz-full-screen video, 
+.player-wrapper:-ms-fullscreen video {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: contain;
+}
+
+/* Обеспечиваем видимость элементов управления в полноэкранном режиме */
+.player-wrapper:fullscreen .custom-controls,
+.player-wrapper:-webkit-full-screen .custom-controls,
+.player-wrapper:-moz-full-screen .custom-controls,
+.player-wrapper:-ms-fullscreen .custom-controls {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 15px;
+    z-index: 2147483647; /* Максимальный z-index */
+}
+
+/* Добавьте эти стили для плавного появления/исчезновения элементов управления */
+.custom-controls {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Стили для времени видео, чтобы оно оставалось на месте при скрытии управления */
+.time-display {
+    white-space: nowrap;
+}
+
+/* Стиль для решения проблемы скролла на iOS при полноэкранном режиме */
+html, body {
+    height: 100%;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Добавляем отступ снизу для мобильных устройств */
+@media (max-width: 768px) {
+    .player-section {
+        margin-bottom: 20px;
+    }
+}

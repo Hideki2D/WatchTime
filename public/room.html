@@ -373,29 +373,85 @@
                 updateVolumeUI();
             }
             
-            // Полноэкранный режим
-            function toggleFullscreen() {
-                if (!document.fullscreenElement) {
-                    const wrapper = document.querySelector('.player-wrapper');
+            function toggleFullscreen() 
+            {
+                const wrapper = document.querySelector('.player-wrapper');
+                
+                if (!document.fullscreenElement && 
+                    !document.mozFullScreenElement && 
+                    !document.webkitFullscreenElement && 
+                    !document.msFullscreenElement) {
+                    // Вход в полноэкранный режим
                     if (wrapper.requestFullscreen) {
                         wrapper.requestFullscreen();
-                    } else if (wrapper.webkitRequestFullscreen) {
-                        wrapper.webkitRequestFullscreen();
                     } else if (wrapper.msRequestFullscreen) {
                         wrapper.msRequestFullscreen();
+                    } else if (wrapper.mozRequestFullScreen) {
+                        wrapper.mozRequestFullScreen();
+                    } else if (wrapper.webkitRequestFullscreen) {
+                        wrapper.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
                     }
                 } else {
+                    // Выход из полноэкранного режима
                     if (document.exitFullscreen) {
                         document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
                     } else if (document.msExitFullscreen) {
                         document.msExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
                     }
                 }
             }
-            
-            // События для видео
+
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+            function handleFullscreenChange() {
+                const wrapper = document.querySelector('.player-wrapper');
+                const video = document.getElementById('videoPlayer');
+                
+                if (document.fullscreenElement || 
+                    document.webkitFullscreenElement || 
+                    document.mozFullScreenElement || 
+                    document.msFullscreenElement) {
+                    // Вошли в полноэкранный режим
+                    wrapper.classList.add('fullscreen-active');
+                    video.style.width = '100%';
+                    video.style.height = '100%';
+                    video.style.maxHeight = 'none';
+                } else {
+                    // Вышли из полноэкранного режима
+                    wrapper.classList.remove('fullscreen-active');
+                    video.style.width = '100%';
+                    video.style.height = 'auto';
+                    video.style.maxHeight = '70vh';
+                }
+                
+                // Принудительно обновляем дисплей, чтобы все стили применились корректно
+                setTimeout(function() {
+                    window.dispatchEvent(new Event('resize'));
+                }, 50);
+            }
+            // Добавьте этот обработчик события resize
+            window.addEventListener('resize', function() {
+                // При изменении размера окна может потребоваться обновление размеров видео
+                const wrapper = document.querySelector('.player-wrapper');
+                const video = document.getElementById('videoPlayer');
+                
+                if (document.fullscreenElement || 
+                    document.webkitFullscreenElement || 
+                    document.mozFullScreenElement || 
+                    document.msFullscreenElement) {
+                    // Если в полноэкранном режиме
+                    video.style.width = '100%';
+                    video.style.height = '100%';
+                }
+            });
+                        // События для видео
             video.addEventListener('timeupdate', updateProgress);
             video.addEventListener('play', function() {
                 playIcon.style.display = 'none';
@@ -594,6 +650,178 @@
                 customControls.style.display = 'none';
             });
         });
+
+    
+
+    // Функция для определения типа устройства
+    function isMobileDevice() {
+        return (window.innerWidth <= 768) || 
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    // Настройка для мобильных устройств
+    function setupMobileOptimizations() {
+        const video = document.getElementById('videoPlayer');
+        const customControls = document.getElementById('customControls');
+        
+        if (isMobileDevice()) {
+            // Атрибуты для лучшей поддержки мобильных устройств
+            video.setAttribute('playsinline', '');
+            video.setAttribute('webkit-playsinline', '');
+            video.setAttribute('x-webkit-airplay', 'allow');
+            
+            // Настройка размеров видео для мобильных устройств
+            video.style.objectFit = 'contain';
+            
+            // Показываем элементы управления при касании видео
+            video.addEventListener('touchstart', function() {
+                if (customControls.style.opacity !== '1') {
+                    showControls();
+                } else {
+                    hideControlsAfterDelay();
+                }
+            });
+            
+            // Улучшаем работу с полноэкранным режимом для iOS
+            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                fullscreenButton.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (video.webkitEnterFullscreen) {
+                        video.webkitEnterFullscreen();
+                    } else if (video.requestFullscreen) {
+                        video.requestFullscreen();
+                    }
+                });
+            }
+        }
+    }
+
+    // Функции для показа/скрытия элементов управления
+    let controlsTimeout;
+
+    function showControls() {
+        const customControls = document.getElementById('customControls');
+        customControls.style.opacity = '1';
+        customControls.style.transform = 'translateY(0)';
+        
+        clearTimeout(controlsTimeout);
+        hideControlsAfterDelay();
+    }
+
+    function hideControls() {
+        const customControls = document.getElementById('customControls');
+        customControls.style.opacity = '0';
+        customControls.style.transform = 'translateY(10px)';
+    }
+
+    function hideControlsAfterDelay() {
+        clearTimeout(controlsTimeout);
+        controlsTimeout = setTimeout(hideControls, 3000); // Скрываем через 3 секунды
+    }
+
+    // Показать элементы управления при движении мыши
+    document.querySelector('.video-container').addEventListener('mousemove', showControls);
+
+    // Скрыть элементы управления через некоторое время бездействия
+    hideControlsAfterDelay();
+
+    // Останавливаем скрытие при наведении на элементы управления
+    document.querySelector('.custom-controls').addEventListener('mouseenter', function() {
+        clearTimeout(controlsTimeout);
+    });
+
+    // Возобновляем скрытие при уходе мыши с элементов управления
+    document.querySelector('.custom-controls').addEventListener('mouseleave', hideControlsAfterDelay);
+
+    // Вызываем функцию настройки для мобильных устройств
+    setupMobileOptimizations();
+
+    // Обрабатываем изменение ориентации устройства
+    window.addEventListener('orientationchange', function() {
+        // Обновляем размеры при изменении ориентации
+        setTimeout(function() {
+            if (document.fullscreenElement || 
+                document.webkitFullscreenElement || 
+                document.mozFullScreenElement || 
+                document.msFullscreenElement) {
+                
+                const video = document.getElementById('videoPlayer');
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'contain';
+            }
+        }, 300); // Небольшая задержка для завершения изменения ориентации
+    });
+    // Добавьте эту функцию для обработки полноэкранного режима на разных устройствах
+    function updateFullscreenUI() {
+        const isFullscreen = document.fullscreenElement || 
+                            document.webkitFullscreenElement || 
+                            document.mozFullScreenElement || 
+                            document.msFullscreenElement;
+        
+        const video = document.getElementById('videoPlayer');
+        const wrapper = document.querySelector('.player-wrapper');
+        
+        if (isFullscreen) {
+            // В полноэкранном режиме
+            wrapper.classList.add('is-fullscreen');
+            video.style.objectFit = 'contain';
+            
+            // Особая обработка для мобильных устройств
+            if (isMobileDevice()) {
+                video.style.width = '100%';
+                video.style.height = '100%';
+                wrapper.style.display = 'flex';
+                wrapper.style.alignItems = 'center';
+                wrapper.style.justifyContent = 'center';
+            }
+        } else {
+            // Вышли из полноэкранного режима
+            wrapper.classList.remove('is-fullscreen');
+            
+            // Возвращаем стандартные стили
+            video.style.objectFit = '';
+            
+            if (isMobileDevice()) {
+                video.style.width = '100%';
+                video.style.height = 'auto';
+                wrapper.style.display = '';
+                wrapper.style.alignItems = '';
+                wrapper.style.justifyContent = '';
+            }
+        }
+    }
+
+    // Обновите существующие обработчики событий полноэкранного режима
+    document.addEventListener('fullscreenchange', updateFullscreenUI);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
+    document.addEventListener('mozfullscreenchange', updateFullscreenUI);
+    document.addEventListener('MSFullscreenChange', updateFullscreenUI);
+
+    // Специфическая обработка для iOS Safari
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+        const video = document.getElementById('videoPlayer');
+        
+        // Обработка нажатия кнопки fullscreen для iOS
+        document.getElementById('fullscreenButton').addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            if (video.webkitSupportsFullscreen) {
+                video.webkitEnterFullscreen();
+            }
+        });
+        
+        // Добавление слушателя для события входа в полноэкранный режим
+        video.addEventListener('webkitbeginfullscreen', function() {
+            // В Safari на iOS элементы управления видео будут нативными в полноэкранном режиме
+        });
+        
+        // Добавление слушателя для события выхода из полноэкранного режима
+        video.addEventListener('webkitendfullscreen', function() {
+            // Действия при выходе из полноэкранного режима
+        });
+    }
+
     </script>
 </body>
 </html>
