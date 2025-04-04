@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    sessionStorage.setItem('visitedFromMain', 'true');
     // Обробник кнопки "Створити кімнату"
     document.getElementById('create-room').addEventListener('click', () => {
         fetch('/createRoom', { method: 'POST' })

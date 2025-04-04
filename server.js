@@ -145,7 +145,7 @@ app.post("/createRoom", (req, res) => {
 
 io.on("connection", (socket) => {
     let roomId;
-
+    socket.busy = false;
     socket.on('checkRoom', (roomId) => {
         const exists = rooms.hasOwnProperty(roomId);
         socket.emit('roomExists', exists);
@@ -175,26 +175,68 @@ io.on("connection", (socket) => {
     });
 
     socket.on("play", (time) => {
+        if(socket.busy)
+            return;
+        socket.busy = true;
+       // processRequest(socket);
+        console.log(roomId);
+        const clientsInRoom = io.sockets.adapter.rooms.get(roomId);
+        console.log(clientsInRoom);
+        if (clientsInRoom) {
+            // Переводим Set в массив
+            [...clientsInRoom].forEach((client) => {
+                console.log(client); // Здесь будет ID каждого клиента
+            });
+        }
         if (rooms[roomId]) {
             rooms[roomId].playing = true;
             rooms[roomId].time = time;
-            io.to(roomId).emit("play", time);
+            io.to(roomId).emit("play", time); // Исключаем отправителя
         }
+        socket.busy = false;
     });
 
     socket.on("pause", (time) => {
+        if(socket.busy)
+            return;
+        socket.busy = true;
+        //processRequest(socket);
+        console.log(roomId);
+        const clientsInRoom = io.sockets.adapter.rooms.get(roomId);
+        console.log(clientsInRoom);
+        if (clientsInRoom) {
+            // Переводим Set в массив
+            [...clientsInRoom].forEach((client) => {
+                console.log(client); // Здесь будет ID каждого клиента
+            });
+        }
         if (rooms[roomId]) {
             rooms[roomId].playing = false;
             rooms[roomId].time = time;
-            io.to(roomId).emit("pause", time);
+            io.to(roomId).emit("pause", time); // Исключаем отправителя
         }
+        socket.busy = false;
     });
 
     socket.on("seek", (time) => {
+        if(socket.busy)
+            return;
+        socket.busy = true;
+        //processRequest(socket);
+        console.log(roomId);
+        const clientsInRoom = io.sockets.adapter.rooms.get(roomId);
+        console.log(clientsInRoom);
+        if (clientsInRoom) {
+            // Переводим Set в массив
+            [...clientsInRoom].forEach((client) => {
+                console.log(client); // Здесь будет ID каждого клиента
+            });
+        }
         if (rooms[roomId]) {
             rooms[roomId].time = time;
-            io.to(roomId).emit("seek", time);
+            io.to(roomId).emit("seek", time); // Исключаем отправителя
         }
+        socket.busy = false;
     });
 
     socket.on("disconnect", () => {
@@ -205,3 +247,15 @@ io.on("connection", (socket) => {
 server.listen(3000, () => {
     console.log("Сервер запущен на http://localhost:3000");
 });
+
+async function processRequest(socket)
+{
+    await delay(100);
+    socket.busy = false;
+}
+
+async function delay(time) {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, time);
+    });
+  }

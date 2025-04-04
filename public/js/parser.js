@@ -1,4 +1,4 @@
-const proxiUrl = 'https://watch-time.koyeb.app/proxy?url=';
+const proxiUrl = 'http://159.224.107.242:3000/proxy?url=';
 const reqUrl = 'https://uakino.me/engine/ajax/playlists.php?news_id=$id&xfield=playlist&time=1736247302';
 // const url = proxuUrl + encodeURIComponent("https://uakino.me/engine/ajax/playlists.php?news_id=18489&xfield=playlist&time=1736247302");
 // fetch(url)
@@ -8,6 +8,8 @@ const reqUrl = 'https://uakino.me/engine/ajax/playlists.php?news_id=$id&xfield=p
 let url;
 function Search(str)
 {
+  console.log(str);
+  console.log(proxiUrl);
   url = str;
   //url = document.querySelector('.SearchUrl').value;
   fetch(proxiUrl + url)

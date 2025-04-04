@@ -7,6 +7,146 @@
     <link rel="stylesheet" href="/css/room.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <style>
+        /* Базовые стили для плеера */
+        .player-wrapper {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .video-container {
+            width: 100%;
+            position: relative;
+        }
+        
+        #videoPlayer {
+            width: 100%;
+            display: block;
+            max-height: 70vh;
+            background: #000;
+        }
+        
+        /* Стили для элементов управления */
+        .custom-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #FF5A5F;
+            border-radius: 5px;
+            width: 0%;
+        }
+        
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .control-button {
+            background: rgba(0,0,0,0.5);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        
+        .control-button svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .time-display {
+            color: white;
+            font-size: 14px;
+            margin-left: auto;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            margin: 0 15px;
+        }
+        
+        .volume-slider {
+            width: 80px;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            margin-left: 10px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .volume-level {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: white;
+            border-radius: 3px;
+            width: 100%;
+        }
+        
+        /* Стили для оверлея загрузки */
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 10;
+            display: none;
+        }
+        
+        /* Стили для кнопок управления в мобильной версии */
+        @media (max-width: 768px) {
+            .volume-container {
+                display: none;
+            }
+            
+            .control-button {
+                width: 32px;
+                height: 32px;
+                margin-right: 5px;
+            }
+            
+            .time-display {
+                font-size: 12px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="room-layout">
@@ -17,63 +157,443 @@
                 <a href="/" class="home-link">Вернуться на главную</a>
             </div>
         </div>
-
-        <!-- Main room content -->
-        <div id="room-container" class="room-content">
-            <!-- Header with room info -->
-            <header class="room-header">
-                <div class="room-info">
-                    <h2>Комната: <span id="room-name"></span></h2>
-                    <button id="copy-button" class="copy-btn" title="Скопировать код комнаты">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                    </button>
-                </div>
-            </header>
-
-            <!-- Main content area -->
-            <main class="room-main">
-                <!-- Search section -->
-                <section class="search-section">
-                    <div class="search-container">
-                        <input class="search-input" type="url" placeholder="Вставьте ссылку на видео">
-                        <button class="search-btn">Поиск</button>
-                    </div>
-                    
-                    <div class="search-results">
-                        <!-- Results will be inserted here -->
-                    </div>
-                </section>
-
-                <!-- Video player section -->
-                <section class="player-section">
-                    <div class="video-container">
-                        <video id="videoPlayer" controls></video>
-                    </div>
-                </section>
-
-                <!-- Voices and episodes section -->
-                <section class="content-section">
-                    <div class="voices-container">
-                        <h3>Доступные озвучки</h3>
-                        <div class="voices-buttons"></div>
-                    </div>
-                    
-                    <div class="episodes-container">
-                        <h3>Список серий</h3>
-                        <div class="episodes-buttons"></div>
-                    </div>
-                </section>
-            </main>
+        <div id="overlay" class="overlay">
+            <button id="startButton" class="start-button">Начать просмотр</button>
         </div>
-    </div>
+        
+        <!-- Ваш основной интерфейс страницы -->
+        <div id="mainContent" class="main-content">
+                <!-- Main room content -->
+            <div id="room-container" class="room-content">
+                <button id="startButton" style="display:none;">Начать просмотр</button>
+                <!-- Header with room info -->
+                <header class="room-header">
+                    <div class="room-info">
+                        <h2>Комната: <span id="room-name"></span></h2>
+                        <button id="copy-button" class="copy-btn" title="Скопировать код комнаты">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Main content area -->
+                <main class="room-main">
+                    <!-- Search section -->
+                    <section class="search-section">
+                        <div class="search-container">
+                            <input class="search-input" type="url" placeholder="Вставьте ссылку на видео">
+                            <button class="search-btn">Поиск</button>
+                        </div>
+                        
+                        <div class="search-results">
+                            <!-- Results will be inserted here -->
+                        </div>
+                    </section>
+
+                    <!-- Video player section -->
+                    <section class="player-section">
+                        <div class="player-wrapper">
+                            <div class="video-container">
+                                <!-- Основной видеоэлемент -->
+                                <video id="videoPlayer" controls></video>
+                                
+                                <!-- Кастомные элементы управления -->
+                                <div class="custom-controls" id="customControls">
+                                    <div class="progress-bar-container" id="progressContainer">
+                                        <div class="progress-bar" id="progressBar"></div>
+                                    </div>
+                                    <div class="controls-row">
+                                        <button class="control-button" id="playPauseButton">
+                                            <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                            </svg>
+                                            <svg id="pauseIcon" style="display:none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="6" y="4" width="4" height="16"></rect>
+                                                <rect x="14" y="4" width="4" height="16"></rect>
+                                            </svg>
+                                        </button>
+                                        
+                                        <div class="volume-container">
+                                            <button class="control-button" id="muteButton">
+                                                <svg id="volumeIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                                                </svg>
+                                                <svg id="muteIcon" style="display:none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                                    <line x1="23" y1="9" x2="17" y2="15"></line>
+                                                    <line x1="17" y1="9" x2="23" y2="15"></line>
+                                                </svg>
+                                            </button>
+                                            <div class="volume-slider" id="volumeSlider">
+                                                <div class="volume-level" id="volumeLevel"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="time-display" id="timeDisplay">0:00 / 0:00</div>
+                                        
+                                        <button class="control-button" id="fullscreenButton">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Индикатор загрузки -->
+                                <div class="loading-indicator" id="loadingIndicator">
+                                    Загрузка...
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Voices and episodes section -->
+                    <section class="content-section">
+                        <div class="voices-container">
+                            <h3>Доступные озвучки</h3>
+                            <div class="voices-buttons"></div>
+                        </div>
+                        
+                        <div class="episodes-container">
+                            <h3>Список серий</h3>
+                            <div class="episodes-buttons"></div>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </div>
+        </div>
+      
 
     <!-- Scripts -->
     <script src="/js/utils.js"></script>
     <script src="/js/parser.js"></script>
     <script src="/js/videoPlayer.js"></script>
     <script src="/js/room.js"></script>
+    <script>
+                    // Переключение воспроизведения/паузы
+                    async function setPlay() 
+            {
+                video.play();
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+            }
+
+            async function setPause() 
+            {
+                video.pause();
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            }    
+
+            // Перемотка видео
+            function seekVideo(e) {
+                // const rect = progressContainer.getBoundingClientRect();
+                // const pos = (e.clientX - rect.left) / rect.width;
+                if (video.duration) {
+                    video.currentTime = e;
+                }
+            }
+            
+        document.addEventListener('DOMContentLoaded', function() {
+            // Получаем все необходимые элементы
+            const video = document.getElementById('videoPlayer');
+            const customControls = document.getElementById('customControls');
+            const playPauseButton = document.getElementById('playPauseButton');
+            const playIcon = document.getElementById('playIcon');
+            const pauseIcon = document.getElementById('pauseIcon');
+            const muteButton = document.getElementById('muteButton');
+            const volumeIcon = document.getElementById('volumeIcon');
+            const muteIcon = document.getElementById('muteIcon');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeLevel = document.getElementById('volumeLevel');
+            const timeDisplay = document.getElementById('timeDisplay');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const fullscreenButton = document.getElementById('fullscreenButton');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            // Отключаем встроенные элементы управления и добавляем атрибуты
+            video.controls = false;
+            video.setAttribute('playsinline', '');
+            video.setAttribute('webkit-playsinline', '');
+            
+            // Отображаем наши кастомные контролы, скрываем встроенные
+            customControls.style.display = 'flex';
+            
+            // Функция форматирования времени
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+            
+            // Обновление шкалы прогресса и времени
+            function updateProgress() {
+                if (video.duration) {
+                    const percent = (video.currentTime / video.duration) * 100;
+                    progressBar.style.width = `${percent}%`;
+                    timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+                }
+            }
+            
+
+            
+            // Переключение звука
+            function toggleMute() {
+                video.muted = !video.muted;
+                updateVolumeUI();
+            }
+            
+            // Обновление UI громкости
+            function updateVolumeUI() {
+                if (video.muted || video.volume === 0) {
+                    volumeIcon.style.display = 'none';
+                    muteIcon.style.display = 'block';
+                    volumeLevel.style.width = '0%';
+                } else {
+                    volumeIcon.style.display = 'block';
+                    muteIcon.style.display = 'none';
+                    volumeLevel.style.width = `${video.volume * 100}%`;
+                }
+            }
+            
+            // Настройка громкости
+            function setVolume(e) {
+                const rect = volumeSlider.getBoundingClientRect();
+                let pos = (e.clientX - rect.left) / rect.width;
+                pos = Math.max(0, Math.min(1, pos));
+                video.volume = pos;
+                video.muted = false;
+                updateVolumeUI();
+            }
+            
+            // Полноэкранный режим
+            function toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    const wrapper = document.querySelector('.player-wrapper');
+                    if (wrapper.requestFullscreen) {
+                        wrapper.requestFullscreen();
+                    } else if (wrapper.webkitRequestFullscreen) {
+                        wrapper.webkitRequestFullscreen();
+                    } else if (wrapper.msRequestFullscreen) {
+                        wrapper.msRequestFullscreen();
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                }
+            }
+            
+            // События для видео
+            video.addEventListener('timeupdate', updateProgress);
+            video.addEventListener('play', function() {
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+            });
+            video.addEventListener('pause', function() {
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            });
+            video.addEventListener('ended', function() {
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            });
+            video.addEventListener('volumechange', updateVolumeUI);
+            video.addEventListener('loadstart', function() {
+                loadingIndicator.style.display = 'block';
+            });
+            video.addEventListener('canplay', function() {
+                loadingIndicator.style.display = 'none';
+            });
+            
+            function PlayOrPause(){
+                if (video.paused || video.ended) {
+                    play();
+                } 
+                else 
+                {
+                    pause();
+                }
+            }
+
+            function Seek(e){
+                //console.log(e);
+                const rect = progressContainer.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                seek(pos * video.duration);
+            }
+            // События для кнопок управления
+            playPauseButton.addEventListener('click', PlayOrPause);
+            muteButton.addEventListener('click', toggleMute);
+            fullscreenButton.addEventListener('click', toggleFullscreen);
+            
+            // События для прогресс-бара и громкости
+            progressContainer.addEventListener('click', Seek);
+            volumeSlider.addEventListener('click', setVolume);
+            
+            // Клик по видео для воспроизведения/паузы
+            video.addEventListener('click', PlayOrPause);
+            
+            // Управление с клавиатуры
+            document.addEventListener('keydown', function(e) {
+                if (document.activeElement.tagName !== 'INPUT' && 
+                    document.activeElement.tagName !== 'TEXTAREA') {
+                    switch(e.key) {
+                        case ' ':
+                        case 'k':
+                            togglePlay();
+                            e.preventDefault();
+                            break;
+                        case 'm':
+                            toggleMute();
+                            e.preventDefault();
+                            break;
+                        case 'f':
+                            toggleFullscreen();
+                            e.preventDefault();
+                            break;
+                        case 'ArrowRight':
+                            video.currentTime += 5;
+                            e.preventDefault();
+                            break;
+                        case 'ArrowLeft':
+                            video.currentTime -= 5;
+                            e.preventDefault();
+                            break;
+                        case 'ArrowUp':
+                            video.volume = Math.min(1, video.volume + 0.1);
+                            video.muted = false;
+                            updateVolumeUI();
+                            e.preventDefault();
+                            break;
+                        case 'ArrowDown':
+                            video.volume = Math.max(0, video.volume - 0.1);
+                            updateVolumeUI();
+                            e.preventDefault();
+                            break;
+                    }
+                }
+            });
+            
+            // Инициализация начального состояния
+            updateVolumeUI();
+            
+            // Функции для загрузки и воспроизведения видео
+            window.loadHlsStream = function(url) {
+                if (Hls.isSupported()) {
+                    const hls = new Hls();
+                    loadingIndicator.style.display = 'block';
+                    
+                    hls.loadSource(url);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        loadingIndicator.style.display = 'none';
+                        video.play()
+                            .then(() => {
+                                playIcon.style.display = 'none';
+                                pauseIcon.style.display = 'block';
+                            })
+                            .catch(err => {
+                                console.log('Автовоспроизведение заблокировано: ', err);
+                            });
+                    });
+                    
+                    hls.on(Hls.Events.ERROR, function(event, data) {
+                        if (data.fatal) {
+                            switch(data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    console.log('Сетевая ошибка, попытка восстановления...');
+                                    hls.startLoad();
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    console.log('Ошибка медиа, попытка восстановления...');
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    console.log('Неустранимая ошибка');
+                                    hls.destroy();
+                                    break;
+                            }
+                        }
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Нативная поддержка HLS в Safari
+                    video.src = url;
+                    video.addEventListener('loadedmetadata', function() {
+                        video.play();
+                    });
+                }
+            };
+            
+            window.loadVideoSource = function(url) {
+                loadingIndicator.style.display = 'block';
+                video.src = url;
+                video.addEventListener('canplay', function onCanPlay() {
+                    loadingIndicator.style.display = 'none';
+                    video.play()
+                        .then(() => {
+                            playIcon.style.display = 'none';
+                            pauseIcon.style.display = 'block';
+                        })
+                        .catch(err => {
+                            console.log('Автовоспроизведение заблокировано: ', err);
+                        });
+                    video.removeEventListener('canplay', onCanPlay);
+                });
+            };
+            
+            // Публичные методы для управления плеером
+            window.customPlayerControls = {
+                play: function() {
+                    video.play();
+                },
+                pause: function() {
+                    video.pause();
+                },
+                togglePlay: PlayOrPause,
+                setCurrentTime: function(time) {
+                    if (time >= 0 && time <= video.duration) {
+                        video.currentTime = time;
+                    }
+                },
+                mute: function() {
+                    video.muted = true;
+                    updateVolumeUI();
+                },
+                unmute: function() {
+                    video.muted = false;
+                    updateVolumeUI();
+                },
+                toggleMute: toggleMute,
+                setVolume: function(volume) {
+                    if (volume >= 0 && volume <= 1) {
+                        video.volume = volume;
+                        updateVolumeUI();
+                    }
+                },
+                getPlayer: function() {
+                    return video;
+                }
+            };
+            
+            // ВАЖНО: Оставляем стандартные элементы управления как запасные
+            // на случай если кастомные не работают
+            video.addEventListener('error', function() {
+                video.controls = true;
+                customControls.style.display = 'none';
+            });
+        });
+    </script>
 </body>
 </html>

@@ -3,44 +3,82 @@ const video = document.getElementById('videoPlayer');
 const roomContainer = document.getElementById('room-container');
 const errorMessage = document.getElementById('error-message');
 const roomId = window.location.pathname.split('/').pop();
+//const customPlayPauseButton = document.getElementById('customPlayPause');
+let isSyncing = false; 
+let isPlayEventInProgress = false;
 document.addEventListener('DOMContentLoaded', () => {
-    let isSeeking = false;
+    const startButton = document.getElementById('startButton');
+    const overlay = document.getElementById('overlay');
+    const mainContent = document.getElementById('mainContent');
+    const errorMessage = document.getElementById('error-message');
+    const roomContainer = document.getElementById('room-container');
+    //const roomId = window.location.pathname.split('/').pop();
 
-    // Set room name
-    document.getElementById('room-name').textContent = roomId;
+    // Обрабатываем нажатие на кнопку Play/Pause
+    // customPlayPauseButton.addEventListener('click', () => {
+    //     if (video.paused) {
+    //         play();
+    //     } 
+    //     else {
+    //         pause();
+    //     }
+    // });
 
-    // Join room
-    socket.emit('joinRoom', roomId);
-
-    // Room error handling
-    socket.on('roomError', (message) => {
-        errorMessage.style.display = 'flex';
-    });
-
-    // Update playlist
-    socket.on('updatePlaylist', (url) => {
-        roomContainer.style.display = 'block';
-        loadHlsStream(url);
-    });
-
-    socket.emit('checkRoom', roomId);
-
-    socket.on('roomExists', (exists) => {
-        if (exists) {
-            errorMessage.style.display = 'none';
-            roomContainer.style.display = 'block';
-            initializeRoom();
-        } else {
-            errorMessage.style.display = 'flex';
-            roomContainer.style.display = 'none';
-        }
-    });
-    function initializeRoom() {
-        // Тут ініціалізація вашої кімнати
-        console.log('Кімната успішно завантажена:', roomId);
+    // Показываем кнопку, если пользователь зашел по прямой ссылке
+    if (!sessionStorage.getItem('visitedFromMain')) {
+        overlay.style.display = 'flex';  // Показываем кнопку
+        mainContent.classList.add('hidden');  // Скрываем основной контент
     }
 
-    // Search button event
+    // Если пользователь перешел с главной страницы, скрываем кнопку
+    sessionStorage.setItem('visitedFromMain', 'true');
+
+    // Когда пользователь нажимает на кнопку
+    startButton.addEventListener('click', () => {
+        // Скрываем кнопку и показываем основной контент
+        overlay.style.display = 'none';
+        mainContent.classList.remove('hidden'); // Показываем контент
+        // Set room name
+        document.getElementById('room-name').textContent = roomId;
+        // Входим в комнату после соединения
+        socket.emit('joinRoom', roomId);
+
+        // Обработчик события синхронизации
+        socket.on('sync', (data) => {
+            video.currentTime = data.time;
+
+            if (data.playing) {
+                video.play().catch(err => console.error("Play error:", err));
+            } else {
+                video.pause();
+            }
+        });
+
+        // Обработчик ошибки комнаты
+        socket.on('roomError', (message) => {
+            errorMessage.style.display = 'flex';
+        });
+
+        // Обновляем плейлист
+        socket.on('updatePlaylist', (url) => {
+            roomContainer.style.display = 'block';
+            loadHlsStream(url);
+        });
+
+        // Проверка наличия комнаты
+        socket.emit('checkRoom', roomId);
+        
+        socket.on('roomExists', (exists) => {
+            if (exists) {
+                errorMessage.style.display = 'none';
+                roomContainer.style.display = 'block';
+                initializeRoom();
+            } else {
+                errorMessage.style.display = 'flex';
+                roomContainer.style.display = 'none';
+            }
+        });
+            // Search button event
     document.querySelector('.search-btn').addEventListener('click', () => {
         const inputUrl = document.querySelector('.search-input').value.trim();
         if (inputUrl) {
@@ -74,44 +112,75 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Video synchronization
-    video.addEventListener('play', () => {
-        socket.emit('play', video.currentTime);
-    });
-
-    video.addEventListener('pause', () => {
-        socket.emit('pause', video.currentTime);
-    });
-
-    video.addEventListener('seeking', () => {
-        if (!isSeeking) {
-            socket.emit('seek', video.currentTime);
-            isSeeking = true;
-            setTimeout(() => (isSeeking = false), 500);
+        // Инициализация комнаты
+        function initializeRoom() {
+            console.log('Кімната успішно завантажена:', roomId);
         }
+
+        // Обновляем кнопку при изменении состояния видео
+        // video.addEventListener('play', () => {
+        //     customPlayPauseButton.innerHTML = '⏸';
+        // });
+
+        // video.addEventListener('pause', () => {
+        //     customPlayPauseButton.innerHTML = '▶️';
+        // });
+        // video.addEventListener('play', () => {
+        //     video.paused = true;
+        //     console.log("play ", video.paused, !isPlayEventInProgress);
+        //     if (video.paused && !isPlayEventInProgress) {
+        //         isPlayEventInProgress = true;
+        //         socket.emit('play', video.currentTime);
+        //         video.paused = false;
+        //     }
+        // });
+        
+        // video.addEventListener('pause', () => {
+        //     video.paused = false;
+        //     console.log("pause ", !video.paused, !isPlayEventInProgress);
+        //     if (!video.paused && !isPlayEventInProgress) {
+        //         socket.emit('pause', video.currentTime);
+        //         video.paused = true;
+        //     }
+        // });
+        
+        // video.addEventListener('seeking', () => {
+        //     socket.emit('seek', video.currentTime);
+        // });
+        
+
+        socket.on('play', (time) => {
+            console.log("Play");
+            if (video.paused || Math.abs(video.currentTime - time) > 1) {  // Если видео на паузе или времени сильно различаются
+                video.muted = true;
+                video.currentTime = time;
+                setPlay()
+                    .then(() => {
+                        video.muted = false;
+                        isPlayEventInProgress = false;  // Завершаем процесс воспроизведения
+                    })
+                    .catch(err => console.error("Play error:", err));
+            }
+            else 
+                 isPlayEventInProgress = false;
+        });
+        
+        socket.on('pause', (time) => {
+            if (!video.paused) {  // Если видео не на паузе
+                video.currentTime = time;
+                setPause();
+            }
+        });
+        
+        socket.on('seek', (time) => {
+            console.log("seeked");
+            if (Math.abs(video.currentTime - time) > 1) {  // Если время отличается, синхронизируем
+                seekVideo(time);
+            }
+        });
     });
 
-    socket.on('play', (time) => {
-        if (video.paused) {
-            video.currentTime = time;
-            video.play();
-        }
-    });
-
-    socket.on('pause', (time) => {
-        if (!video.paused) {
-            video.currentTime = time;
-            video.pause();
-        }
-    });
-
-    socket.on('seek', (time) => {
-        if (Math.abs(video.currentTime - time) > 1) {
-            video.currentTime = time;
-        }
-    });
-
-    
+    // Функция для загрузки потока
     function loadHlsStream(url) {
         if (Hls.isSupported()) {
             const hls = new Hls();
@@ -122,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
 function SetupVideoConnect(inputUrl)
 {
     if (inputUrl) 
@@ -204,5 +274,40 @@ async function copyToClipboard(textToCopy) {
         } finally {
             textArea.remove();
         }
+    }
+}
+
+function play()
+{
+    console.log("Пытаемся проиграть");
+    if (!isPlayEventInProgress) {
+        console.log("у нас получилось проиграть");
+        isPlayEventInProgress = true;
+        socket.emit('play', video.currentTime);
+       // video.paused = false;
+        //video.play();
+        isPlayEventInProgress = false;
+    }
+}
+
+function pause()
+{
+    console.log("Пытаемся остановить проигрывание");
+    if (!isPlayEventInProgress) {
+        console.log("у нас получилось остановить проигрывание");
+        socket.emit('pause', video.currentTime);
+        //video.pause();
+        //video.paused = true;
+    }
+}
+
+function seek(e)
+{
+    console.log("Пытаемся перемотать видео");
+    if (!isPlayEventInProgress) {
+        console.log("у нас получилось перемотать видео");
+        socket.emit('seek', e);
+        //video.pause();
+        //video.paused = true;
     }
 }
