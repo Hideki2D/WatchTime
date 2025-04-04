@@ -407,12 +407,12 @@ body {
 /* Специфичные стили для очень маленьких экранов */
 @media (max-width: 480px) {
     .controls-row {
-        flex-wrap: wrap;
+            /* flex-wrap: wrap; */
         justify-content: space-between;
     }
     
     .time-display {
-        order: 2;
+        /* order: 2; */
         width: 100%;
         text-align: center;
         margin-top: 8px;
@@ -488,5 +488,18 @@ html, body {
 @media (max-width: 768px) {
     .player-section {
         margin-bottom: 20px;
+    }
+}
+
+@media only screen and (orientation: landscape) and (max-device-height: 768px) 
+{
+    .player-wrapper.fullscreen-active .custom-controls {
+        position: fixed;
+    }
+}
+
+@media only screen and (orientation: landscape) and (max-height: 768px) {
+    .player-wrapper.fullscreen-active .custom-controls {
+        position: fixed;
     }
 }

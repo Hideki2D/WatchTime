@@ -4,149 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Комната просмотра</title>
+    <link rel="stylesheet" href="/css/videoPlayer.css">
     <link rel="stylesheet" href="/css/room.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <style>
-        /* Базовые стили для плеера */
-        .player-wrapper {
-            position: relative;
-            width: 100%;
-            background: #000;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .video-container {
-            width: 100%;
-            position: relative;
-        }
-        
-        #videoPlayer {
-            width: 100%;
-            display: block;
-            max-height: 70vh;
-            background: #000;
-        }
-        
-        /* Стили для элементов управления */
-        .custom-controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(transparent, rgba(0,0,0,0.7));
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            z-index: 5;
-        }
-        
-        .progress-bar-container {
-            width: 100%;
-            height: 10px;
-            background: rgba(255,255,255,0.2);
-            margin-bottom: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: #FF5A5F;
-            border-radius: 5px;
-            width: 0%;
-        }
-        
-        .controls-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .control-button {
-            background: rgba(0,0,0,0.5);
-            border: none;
-            color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 10px;
-        }
-        
-        .control-button svg {
-            width: 18px;
-            height: 18px;
-        }
-        
-        .time-display {
-            color: white;
-            font-size: 14px;
-            margin-left: auto;
-        }
-        
-        .volume-container {
-            display: flex;
-            align-items: center;
-            margin: 0 15px;
-        }
-        
-        .volume-slider {
-            width: 80px;
-            height: 6px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 3px;
-            margin-left: 10px;
-            position: relative;
-            cursor: pointer;
-        }
-        
-        .volume-level {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            background: white;
-            border-radius: 3px;
-            width: 100%;
-        }
-        
-        /* Стили для оверлея загрузки */
-        .loading-indicator {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 5px;
-            font-size: 14px;
-            z-index: 10;
-            display: none;
-        }
-        
-        /* Стили для кнопок управления в мобильной версии */
-        @media (max-width: 768px) {
-            .volume-container {
-                display: none;
-            }
-            
-            .control-button {
-                width: 32px;
-                height: 32px;
-                margin-right: 5px;
-            }
-            
-            .time-display {
-                font-size: 12px;
-            }
-        }
-    </style>
 </head>
 <body>
     <div class="room-layout">
@@ -200,12 +61,12 @@
                                 <!-- Основной видеоэлемент -->
                                 <video id="videoPlayer" controls></video>
                                 
-                                <!-- Кастомные элементы управления -->
-                                <div class="custom-controls" id="customControls">
-                                    <div class="progress-bar-container" id="progressContainer">
-                                        <div class="progress-bar" id="progressBar"></div>
-                                    </div>
-                                    <div class="controls-row">
+                                    <!-- Обновленная структура элементов управления -->
+                                    <div class="custom-controls" id="customControls">
+                                        <div class="progress-bar-container" id="progressContainer">
+                                            <div class="progress-bar" id="progressBar"></div>
+                                        </div>
+                                        <div class="controls-row">
                                         <button class="control-button" id="playPauseButton">
                                             <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
@@ -276,7 +137,16 @@
     <script src="/js/videoPlayer.js"></script>
     <script src="/js/room.js"></script>
     <script>
-                    // Переключение воспроизведения/паузы
+        // const video = document.getElementById('videoPlayer');
+
+        //     document.addEventListener('fullscreenchange', () => {
+        //     if (document.fullscreenElement === video) {
+        //         document.body.classList.add('video-fullscreen');
+        //     } else {
+        //         document.body.classList.remove('video-fullscreen');
+        //     }
+        //     });
+                                // Переключение воспроизведения/паузы
                     async function setPlay() 
             {
                 video.play();
@@ -821,7 +691,45 @@
             // Действия при выходе из полноэкранного режима
         });
     }
+            // Добавьте эту функцию в ваш JavaScript
+        function optimizeControlsForScreenSize() {
+            const screenWidth = window.innerWidth;
+            const controlsRow = document.querySelector('.controls-row');
+            const volumeContainer = document.querySelector('.volume-container');
+            const timeDisplay = document.getElementById('timeDisplay');
+            
+            // Для очень малых экранов
+            if (screenWidth <= 360) {
+                // Скрываем контроль громкости на очень малых экранах
+                if (volumeContainer) {
+                    volumeContainer.style.display = 'none';
+                }
+                
+                // Сокращаем формат времени для экономии места
+                if (timeDisplay) {
+                    // Заменяем функцию форматирования времени для малых экранов
+                    window.formatTimeCompact = function(seconds) {
+                        const minutes = Math.floor(seconds / 60);
+                        const secs = Math.floor(seconds % 60);
+                        return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+                    };
+                    
+                    // Используем компактную функцию форматирования
+                    if (video.duration) {
+                        timeDisplay.textContent = `${formatTimeCompact(video.currentTime)}/${formatTimeCompact(video.duration)}`;
+                    }
+                }
+            } else {
+                // Возвращаем нормальное отображение для больших экранов
+                if (volumeContainer && screenWidth > 480) {
+                    volumeContainer.style.display = 'flex';
+                }
+            }
+        }
 
+        // Вызываем функцию при загрузке и изменении размера окна
+        window.addEventListener('load', optimizeControlsForScreenSize);
+        window.addEventListener('resize', optimizeControlsForScreenSize);
     </script>
 </body>
 </html>

@@ -1,0 +1,138 @@
+ /* Базовые стили для плеера */
+ .player-wrapper {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.video-container {
+    width: 100%;
+    position: relative;
+}
+
+#videoPlayer {
+    width: 100%;
+    display: block;
+    max-height: 70vh;
+    background: #000;
+}
+
+/* Стили для элементов управления */
+.custom-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 10px;
+    background: rgba(255,255,255,0.2);
+    margin-bottom: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #FF5A5F;
+    border-radius: 5px;
+    width: 0%;
+}
+
+.controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.control-button {
+    background: rgba(0,0,0,0.5);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+.control-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+.time-display {
+    color: white;
+    font-size: 14px;
+    margin-left: auto;
+}
+
+.volume-container {
+    display: flex;
+    align-items: center;
+    margin: 0 15px;
+}
+
+.volume-slider {
+    width: 80px;
+    height: 6px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px;
+    margin-left: 10px;
+    position: relative;
+    cursor: pointer;
+}
+
+.volume-level {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: white;
+    border-radius: 3px;
+    width: 100%;
+}
+
+/* Стили для оверлея загрузки */
+.loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 5px;
+    font-size: 14px;
+    z-index: 10;
+    display: none;
+}
+
+/* Стили для кнопок управления в мобильной версии */
+@media (max-width: 768px) {
+    /* .volume-container {
+        display: none;
+    }
+     */
+    .control-button {
+        width: 32px;
+        height: 32px;
+        margin-right: 5px;
+    }
+    
+    .time-display {
+        font-size: 12px;
+    }
+}
