@@ -66,6 +66,7 @@
     align-items: center;
     justify-content: center;
     margin-right: 10px;
+    margin-left: 10px;
 }
 
 .control-button svg {
@@ -129,6 +130,8 @@
     .control-button {
         width: 32px;
         height: 32px;
+        min-width: 32px;
+        min-height: 32px;
         margin-right: 5px;
     }
     

@@ -188,10 +188,130 @@
             const fullscreenButton = document.getElementById('fullscreenButton');
             const loadingIndicator = document.getElementById('loadingIndicator');
             
+
+            //Тестовый блок
+            //Тестовый блок
+            //Тестовый блок
+
+            //     const video = document.getElementById('videoPlayer');
+            // const progressContainer = document.querySelector('.progress-bar-container');
+            // const progressBar = document.querySelector('.progress-bar');
+
+                    let isDraggingProgressBar = false;
+
+            function updateProgressBar(event) {
+                const rect = progressContainer.getBoundingClientRect();
+                const position = (event.clientX - rect.left) / rect.width;
+                if (position >= 0 && position <= 1) {
+                    video.currentTime = position * video.duration;
+                    progressBar.style.width = `${position * 100}%`;
+                }
+            }
+
+            function handleMouseDownProgressBar(event) {
+                isDraggingProgressBar = true;
+                updateProgressBar(event);
+            }
+
+            function handleMouseMoveProgressBar(event) {
+                if (isDraggingProgressBar) {
+                    updateProgressBar(event);
+                }
+            }
+
+            function handleMouseUpProgressBar() {
+                isDraggingProgressBar = false;
+            }
+
+            progressContainer.addEventListener('mousedown', handleMouseDownProgressBar);
+            document.addEventListener('mousemove', handleMouseMoveProgressBar);
+            document.addEventListener('mouseup', handleMouseUpProgressBar);
+
+            // Обработчики для сенсорных устройств
+            progressContainer.addEventListener('touchstart', (event) => {
+                isDraggingProgressBar = true;
+                updateProgressBar(event.touches[0]);
+            });
+
+            document.addEventListener('touchmove', (event) => {
+                if (isDraggingProgressBar) {
+                    updateProgressBar(event.touches[0]);
+                }
+            });
+
+            document.addEventListener('touchend', () => {
+                isDraggingProgressBar = false;
+            });
+
+            // Обновление прогресс-бара во время воспроизведения
+            video.addEventListener('timeupdate', () => {
+                if (!isDraggingProgressBar && video.duration) {
+                    const progress = (video.currentTime / video.duration) * 100;
+                    progressBar.style.width = `${progress}%`;
+                }
+            });
+
+            const volumeContainer = document.querySelector('.volume-slider');
+            const volumeBar = document.querySelector('.volume-level');
+            ///Звук
+            let isDraggingVolume = false;
+
+            function updateVolume(event) {
+                const rect = volumeContainer.getBoundingClientRect();
+                let volumeLevel = (event.clientX - rect.left) / rect.width;
+                if (volumeLevel < 0) volumeLevel = 0;
+                if (volumeLevel > 1) volumeLevel = 1;
+                video.volume = volumeLevel;
+                volumeBar.style.width = `${volumeLevel * 100}%`;
+            }
+
+            function handleMouseDownVolume(event) {
+                isDraggingVolume = true;
+                updateVolume(event);
+            }
+
+            function handleMouseMoveVolume(event) {
+                if (isDraggingVolume) {
+                    updateVolume(event);
+                }
+            }
+
+            function handleMouseUpVolume() {
+                isDraggingVolume = false;
+            }
+
+            volumeContainer.addEventListener('mousedown', handleMouseDownVolume);
+            document.addEventListener('mousemove', handleMouseMoveVolume);
+            document.addEventListener('mouseup', handleMouseUpVolume);
+
+            // Обработчики для сенсорных устройств
+            volumeContainer.addEventListener('touchstart', (event) => {
+                isDraggingVolume = true;
+                updateVolume(event.touches[0]);
+            });
+
+            document.addEventListener('touchmove', (event) => {
+                if (isDraggingVolume) {
+                    updateVolume(event.touches[0]);
+                }
+            });
+
+            document.addEventListener('touchend', () => {
+                isDraggingVolume = false;
+            });
+
+            // Дополнительно: обработка клика по контейнеру громкости для быстрой установки уровня
+            volumeContainer.addEventListener('click', (event) => {
+                updateVolume(event);
+            });
+            //Тестовый блок
+            //Тестовый блок
+            //Тестовый блок
             // Отключаем встроенные элементы управления и добавляем атрибуты
             video.controls = false;
             video.setAttribute('playsinline', '');
             video.setAttribute('webkit-playsinline', '');
+            
             
             // Отображаем наши кастомные контролы, скрываем встроенные
             customControls.style.display = 'flex';
@@ -730,6 +850,7 @@
         // Вызываем функцию при загрузке и изменении размера окна
         window.addEventListener('load', optimizeControlsForScreenSize);
         window.addEventListener('resize', optimizeControlsForScreenSize);
+
     </script>
 </body>
 </html>

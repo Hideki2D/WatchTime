@@ -364,12 +364,12 @@ body {
         background: linear-gradient(transparent, rgba(0,0,0,0.8));
     }
     
-    /* Увеличиваем размер кнопок для удобства нажатия */
+    /* Увеличиваем размер кнопок для удобства нажатия
     .control-button {
         width: 40px;
         height: 40px;
         margin-right: 8px;
-    }
+    } */
     
     /* Увеличиваем иконки внутри кнопок */
     .control-button svg {
@@ -420,6 +420,8 @@ body {
     
     /* Выделяем основные элементы управления */
     #playPauseButton, #fullscreenButton {
+        min-width: 44px;
+        min-height: 44px;
         width: 44px;
         height: 44px;
     }
@@ -427,6 +429,8 @@ body {
     #playPauseButton svg, #fullscreenButton svg {
         width: 24px;
         height: 24px;
+        min-width: 24px;
+        min-height: 24px;
     }
 }
 
