@@ -139,3 +139,45 @@
         font-size: 12px;
     }
 }
+
+.progress-bar-container {
+    background-color: #ddd;
+    height: 5px;
+    border-radius: 2.5px;
+    cursor: pointer;
+    position: relative;
+}
+
+.progress-bar {
+    background-color: #FF5A5F;
+    height: 100%;
+    width: 0%;
+    border-radius: 2.5px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+}
+
+.progress-thumb {
+    width: 12px;
+    height: 12px;
+    background-color: ghostwhite;
+    border-radius: 50%;
+    position: absolute;
+    right: 0;
+    /*ЦентрируемотносительноконцаprogressBar*/top: 50%;
+    transform: translateY(-50%) translateX(50%);
+    cursor: grab;
+    /*Увеличимz-index,чтобыбытьповерхполоски*/z-index: 1;
+    -webkit-transform: translateY(-50%) translateX(50%);
+    -moz-transform: translateY(-50%) translateX(50%);
+    -ms-transform: translateY(-50%) translateX(50%);
+    -o-transform: translateY(-50%) translateX(50%);
+}
+
+/* Стиль при перетаскивании (необязательно) */
+.progress-thumb.dragging {
+    cursor: grabbing;
+}

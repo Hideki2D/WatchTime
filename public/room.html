@@ -64,7 +64,9 @@
                                     <!-- Обновленная структура элементов управления -->
                                     <div class="custom-controls" id="customControls">
                                         <div class="progress-bar-container" id="progressContainer">
-                                            <div class="progress-bar" id="progressBar"></div>
+                                            <div class="progress-bar" id="progressBar">
+                                                <div class="progress-thumb" id="progressThumb"></div>
+                                            </div>
                                         </div>
                                         <div class="controls-row">
                                         <button class="control-button" id="playPauseButton">
@@ -147,7 +149,7 @@
         //     }
         //     });
                                 // Переключение воспроизведения/паузы
-                    async function setPlay() 
+            async function setPlay() 
             {
                 video.play();
                 playIcon.style.display = 'none';
@@ -187,7 +189,29 @@
             const progressBar = document.getElementById('progressBar');
             const fullscreenButton = document.getElementById('fullscreenButton');
             const loadingIndicator = document.getElementById('loadingIndicator');
-            
+            const progressThumb = document.getElementById('progressThumb');
+            const initialBarHeight = progressBar.offsetHeight;
+            const initialThumbSize = progressThumb.offsetWidth;
+
+            window.addEventListener('resize', () => {
+                const progressBar = document.getElementById('progressBar');
+                const progressThumb = document.getElementById('progressThumb');
+
+                const currentBarHeight = progressBar.offsetHeight;
+
+                // Вычисляем новый размер точки пропорционально изменению высоты полоски
+                const scaleFactor = currentBarHeight / initialBarHeight;
+                const newThumbSize = initialThumbSize * scaleFactor;
+
+                // Применяем новые размеры к точке
+                progressThumb.style.width = `${newThumbSize}px`;
+                progressThumb.style.height = `${newThumbSize}px`;
+
+                // Также может потребоваться скорректировать позиционирование,
+                // особенно vertical-align (top) и смещение translateX
+                progressThumb.style.transform = `translateY(-${newThumbSize / 2}px) translateX(50%)`;
+                // Возможно, придется скорректировать right, если вы его использовали
+            });
 
             //Тестовый блок
             //Тестовый блок
@@ -197,57 +221,102 @@
             // const progressContainer = document.querySelector('.progress-bar-container');
             // const progressBar = document.querySelector('.progress-bar');
 
-                    let isDraggingProgressBar = false;
+            let isDraggingProgressBar = false;
+            let isDraggingThumb = false;
 
-            function updateProgressBar(event) {
+            function updateProgressBarFromMouseEvent(event) {
                 const rect = progressContainer.getBoundingClientRect();
-                const position = (event.clientX - rect.left) / rect.width;
-                if (position >= 0 && position <= 1) {
-                    video.currentTime = position * video.duration;
-                    progressBar.style.width = `${position * 100}%`;
-                }
+                let position = (event.clientX - rect.left) / rect.width;
+                position = Math.max(0, Math.min(1, position)); // Ограничиваем от 0 до 1
+                video.currentTime = position * video.duration;
+                updateProgressBarUI(position);
+            }
+
+            function updateProgressBarUI(position) {
+                progressBar.style.width = `${position * 100}%`;
+                //progressThumb.style.right = `${(1 - position) * -12 + -6}px`; // Корректировка позиции индикатора
             }
 
             function handleMouseDownProgressBar(event) {
                 isDraggingProgressBar = true;
-                updateProgressBar(event);
+                updateProgressBarFromMouseEvent(event);
             }
 
             function handleMouseMoveProgressBar(event) {
                 if (isDraggingProgressBar) {
-                    updateProgressBar(event);
+                    updateProgressBarFromMouseEvent(event);
                 }
             }
 
             function handleMouseUpProgressBar() {
                 isDraggingProgressBar = false;
+                progressThumb.classList.remove('dragging');
+            }
+
+            // Обработчики для перетаскивания индикатора
+            function handleMouseDownThumb(event) {
+                isDraggingThumb = true;
+                progressThumb.classList.add('dragging');
+                // Предотвращаем выделение текста при перетаскивании
+                event.preventDefault();
+            }
+
+            function handleMouseMoveThumb(event) {
+                if (isDraggingThumb) {
+                    updateProgressBarFromMouseEvent(event);
+                }
+            }
+
+            function handleMouseUpThumb() {
+                isDraggingThumb = false;
+                progressThumb.classList.remove('dragging');
             }
 
             progressContainer.addEventListener('mousedown', handleMouseDownProgressBar);
             document.addEventListener('mousemove', handleMouseMoveProgressBar);
             document.addEventListener('mouseup', handleMouseUpProgressBar);
 
-            // Обработчики для сенсорных устройств
+            progressThumb.addEventListener('mousedown', handleMouseDownThumb);
+            document.addEventListener('mousemove', handleMouseMoveThumb);
+            document.addEventListener('mouseup', handleMouseUpThumb);
+
+            // Обработчики для сенсорных устройств (аналогично, но с touches[0])
             progressContainer.addEventListener('touchstart', (event) => {
                 isDraggingProgressBar = true;
-                updateProgressBar(event.touches[0]);
+                updateProgressBarFromMouseEvent({ clientX: event.touches[0].clientX });
             });
 
             document.addEventListener('touchmove', (event) => {
                 if (isDraggingProgressBar) {
-                    updateProgressBar(event.touches[0]);
+                    updateProgressBarFromMouseEvent({ clientX: event.touches[0].clientX });
+                } else if (isDraggingThumb) {
+                    updateProgressBarFromMouseEvent({ clientX: event.touches[0].clientX });
                 }
             });
 
             document.addEventListener('touchend', () => {
                 isDraggingProgressBar = false;
+                isDraggingThumb = false;
+                progressThumb.classList.remove('dragging');
             });
 
-            // Обновление прогресс-бара во время воспроизведения
+            progressThumb.addEventListener('touchstart', (event) => {
+                isDraggingThumb = true;
+                progressThumb.classList.add('dragging');
+            });
+
+            // Обновление прогресс-бара и положения индикатора во время воспроизведения
             video.addEventListener('timeupdate', () => {
-                if (!isDraggingProgressBar && video.duration) {
-                    const progress = (video.currentTime / video.duration) * 100;
-                    progressBar.style.width = `${progress}%`;
+                if (!isDraggingProgressBar && !isDraggingThumb && video.duration) {
+                    const progress = video.currentTime / video.duration;
+                    updateProgressBarUI(progress);
+                }
+            });
+
+            // Инициализация положения индикатора при загрузке видео
+            video.addEventListener('loadedmetadata', () => {
+                if (video.duration) {
+                    updateProgressBarUI(0); // Начальное положение
                 }
             });
 
